@@ -3,37 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water Drop Game</title>
+    <meta name="description" content="Play Water Drop, a charity: water game about every drop making a difference.">
+    <title>Water Drop | charity: water game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-wrapper">
-        <h1 class="game-title">Water Drop</h1>
-        <p class="game-tagline">Catch the good drops, avoid the bad ones!</p>
-        <div class="score-panel">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="timer">Time: <span id="time">30</span>s</div>
-            <button id="start-btn">Start Game</button>
-        </div>
-        
-        <div id="game-container" tabindex="0" aria-label="Water drop game. Use the left and right arrow keys or drag to move the bucket.">
-            <div id="bucket" role="img" aria-label="Yellow water bucket"></div>
-            <div id="end-screen" class="end-screen" role="dialog" aria-modal="true" aria-labelledby="end-title" hidden>
-                <div id="confetti" class="confetti" aria-hidden="true"></div>
-                <div class="result-card">
-                    <h2 id="end-title">Great Work!</h2>
-                    <p id="final-message"></p>
-                    <div class="result-total" aria-label="Points earned out of all possible points">
-                        <span class="result-label">Points earned / possible</span>
-                        <strong><span id="final-score">0</span> / <span id="possible-points">0</span></strong>
+        <header class="site-header">
+            <a class="brand-link" href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer" aria-label="charity: water home">
+                <img class="brand-logo" src="img/cw_logo-horizontal.png" alt="charity: water">
+            </a>
+            <nav class="site-nav" aria-label="charity: water links">
+                <a href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">Our work</a>
+                <a class="donate-link" href="https://www.charitywater.org/donate" target="_blank" rel="noopener noreferrer">Donate</a>
+            </nav>
+        </header>
+
+        <main class="game-content">
+            <div class="game-intro">
+                <p class="game-eyebrow">A charity: water game</p>
+                <h1 class="game-title">Water Drop</h1>
+                <p class="game-tagline">Catch the good drops. Help bring clean water closer.</p>
+            </div>
+            <div class="game-stage">
+                <section id="main-menu" class="main-menu" aria-label="Game menu">
+                    <button id="play-btn" class="play-btn" type="button">Play</button>
+                    <div class="menu-options">
+                        <details class="how-to-play">
+                            <summary>How to play</summary>
+                            <div class="how-to-play-content">
+                                <p>Catch falling water drops before time runs out.</p>
+                                <ul>
+                                    <li>Use the left and right arrow keys, A and D, or drag the bucket.</li>
+                                    <li>Catch blue drops in the bucket for 1 point each. Missing one costs 1 point; Jerry cans are worth 10.</li>
+                                    <li>Avoid brown polluted water; catching it costs 5 points.</li>
+                                    <li>Drops only score when they touch the bucket, except for the blue-drop miss penalty.</li>
+                                </ul>
+                            </div>
+                        </details>
+                        <div class="difficulty-control">
+                            <label for="difficulty">Difficulty</label>
+                            <select id="difficulty" name="difficulty">
+                                <option value="easy">Easy</option>
+                                <option value="normal" selected>Normal</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="result-actions">
-                        <button id="play-again-btn" type="button">Play Again</button>
-                        <button id="return-btn" type="button">Return to Main</button>
+                </section>
+
+                <section id="game-board" class="game-board" aria-label="Water Drop game">
+                <div class="score-panel">
+                    <div class="score">Score <span id="score">0</span></div>
+                    <div class="timer">Time <span id="time">30</span>s</div>
+                    <button id="start-btn" type="button">Start Game</button>
+                </div>
+
+                <div id="game-container" tabindex="0" aria-label="Water drop game. Use the left and right arrow keys or drag to move the bucket.">
+                    <div id="bucket" role="img" aria-label="Yellow water bucket"></div>
+                    <div id="end-screen" class="end-screen" role="dialog" aria-modal="true" aria-labelledby="end-title" hidden>
+                        <div id="confetti" class="confetti" aria-hidden="true"></div>
+                        <div class="result-card">
+                            <h2 id="end-title">Great Work!</h2>
+                            <p id="final-message"></p>
+                            <div class="result-total" aria-label="Points earned out of all possible points">
+                                <span class="result-label">Points earned / possible</span>
+                                <strong><span id="final-score">0</span> / <span id="possible-points">0</span></strong>
+                            </div>
+                            <div class="result-actions">
+                                <button id="play-again-btn" type="button">Play Again</button>
+                                <button id="return-btn" type="button">Return to Main</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                </section>
             </div>
-        </div>
+        </main>
+
+        <footer class="site-footer">
+            <span>Every drop counts.</span>
+            <a href="https://www.charitywater.org/" target="_blank" rel="noopener noreferrer">Learn about the clean water mission <span aria-hidden="true">&#8599;</span></a>
+        </footer>
     </div>
     
     <script src="script.js"></script>

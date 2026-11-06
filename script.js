@@ -5,13 +5,22 @@ let countdown;
 let score = 0;
 let timeRemaining = 30;
 let possiblePoints = 0;
+const difficultySettings = {
+  easy: { spawnInterval: 1600, fallDuration: 5, pollutedChance: 0.2, jerryCanChance: 0.2 },
+  normal: { spawnInterval: 1000, fallDuration: 4, pollutedChance: 0.25, jerryCanChance: 0.2 },
+  hard: { spawnInterval: 300, fallDuration: 3, pollutedChance: 0.48, jerryCanChance: 0.1 },
+};
 
 const gameContainer = document.getElementById("game-container");
 const bucket = document.getElementById("bucket");
 const scoreDisplay = document.getElementById("score");
 const timeDisplay = document.getElementById("time");
 const startButton = document.getElementById("start-btn");
+const playButton = document.getElementById("play-btn");
+const mainMenu = document.getElementById("main-menu");
+const difficultySelector = document.getElementById("difficulty");
 const endScreen = document.getElementById("end-screen");
+const endTitle = document.getElementById("end-title");
 const confetti = document.getElementById("confetti");
 const finalMessage = document.getElementById("final-message");
 const finalScoreDisplay = document.getElementById("final-score");
@@ -26,13 +35,22 @@ startButton.addEventListener("click", () => {
 
   startGame();
 });
+playButton.addEventListener("click", () => {
+  mainMenu.hidden = true;
+  startGame();
+  startButton.focus();
+});
 document.getElementById("return-btn").addEventListener("click", returnToMain);
-document.getElementById("play-again-btn").addEventListener("click", startGame);
+document.getElementById("play-again-btn").addEventListener("click", () => {
+  startGame();
+  startButton.focus();
+});
 
 function startGame() {
   // Prevent multiple games from running at once
   if (gameRunning) return;
 
+  const { spawnInterval, fallDuration, pollutedChance, jerryCanChance } = difficultySettings[difficultySelector.value];
   score = 0;
   possiblePoints = 0;
   timeRemaining = 30;
@@ -43,8 +61,7 @@ function startGame() {
   startButton.textContent = "Reset";
   startButton.classList.add("reset");
 
-  // Create new drops every second (1000 milliseconds)
-  dropMaker = setInterval(createDrop, 1000);
+  dropMaker = setInterval(() => createDrop(fallDuration, pollutedChance, jerryCanChance), spawnInterval);
   countdown = setInterval(() => {
     timeRemaining -= 1;
     timeDisplay.textContent = timeRemaining;
@@ -79,7 +96,11 @@ function resetGame() {
 }
 
 function showEndScreen() {
-  finalMessage.textContent = `Your total: ${score} point${Math.abs(score) === 1 ? "" : "s"}!`;
+  const scoredBelowHalf = possiblePoints > 0 && score < possiblePoints / 2;
+  endTitle.textContent = scoredBelowHalf ? "Keep Trying!" : "Great Work!";
+  finalMessage.textContent = scoredBelowHalf
+    ? "You scored under 50% of the possible points. Keep practicing, you can do better!"
+    : `Your total: ${score} point${Math.abs(score) === 1 ? "" : "s"}!`;
   finalScoreDisplay.textContent = score;
   possiblePointsDisplay.textContent = possiblePoints;
   confetti.replaceChildren();
@@ -100,12 +121,9 @@ function showEndScreen() {
 }
 
 function returnToMain() {
-  endScreen.hidden = true;
-  score = 0;
-  possiblePoints = 0;
-  timeRemaining = 30;
-  scoreDisplay.textContent = score;
-  timeDisplay.textContent = timeRemaining;
+  resetGame();
+  mainMenu.hidden = false;
+  playButton.focus();
 }
 
 function moveBucketTo(left) {
@@ -113,7 +131,17 @@ function moveBucketTo(left) {
   bucket.style.left = `${Math.max(0, Math.min(left, maxLeft))}px`;
 }
 
+function collectDrop(drop) {
+  if (!gameRunning || drop.dataset.collected === "true") return;
+
+  drop.dataset.collected = "true";
+  drop.remove();
+  score += Number(drop.dataset.points);
+  scoreDisplay.textContent = score;
+}
+
 document.addEventListener("keydown", (event) => {
+  if (!gameRunning) return;
   if (!["ArrowLeft", "ArrowRight", "a", "A", "d", "D"].includes(event.key)) return;
 
   event.preventDefault();
@@ -128,7 +156,6 @@ gameContainer.addEventListener("pointerdown", (event) => {
 
   draggingBucket = true;
   gameContainer.setPointerCapture(event.pointerId);
-  moveBucketTo(event.clientX - gameContainer.getBoundingClientRect().left - bucket.offsetWidth / 2);
 });
 
 gameContainer.addEventListener("pointermove", (event) => {
@@ -153,23 +180,30 @@ function checkForCaughtDrops() {
       && dropBounds.top < bucketBounds.bottom;
 
     if (overlaps) {
-      drop.remove();
-      score += Number(drop.dataset.points);
-      scoreDisplay.textContent = score;
+      collectDrop(drop);
     }
   });
 
   requestAnimationFrame(checkForCaughtDrops);
 }
 
-function createDrop() {
+function createDrop(fallDuration, pollutedChance, jerryCanChance) {
   // Create a new div element that will be our water drop
   const drop = document.createElement("div");
-  const isJerryCan = Math.random() < 0.2;
-  drop.className = isJerryCan ? "water-drop jerry-can-drop" : "water-drop";
-  drop.dataset.points = isJerryCan ? "10" : "1";
-  drop.dataset.missPenalty = isJerryCan ? "5" : "1";
-  possiblePoints += Number(drop.dataset.points);
+  const typeRoll = Math.random();
+  const isPolluted = typeRoll < pollutedChance;
+  const isJerryCan = typeRoll >= 1 - jerryCanChance;
+  drop.className = isPolluted
+    ? "water-drop bad-drop"
+    : isJerryCan ? "water-drop jerry-can-drop" : "water-drop";
+  drop.dataset.points = isPolluted ? "-5" : isJerryCan ? "10" : "1";
+  drop.dataset.missPenalty = isPolluted ? "0" : isJerryCan ? "5" : "1";
+  drop.setAttribute("role", "img");
+  drop.setAttribute("aria-label", isPolluted
+    ? "Polluted water, avoid it"
+    : isJerryCan ? "Water can, worth 10 points" : "Water drop, worth 1 point");
+  drop.tabIndex = -1;
+  if (!isPolluted) possiblePoints += Number(drop.dataset.points);
 
   // Make drops different sizes for visual variety
   const initialSize = 60;
@@ -182,14 +216,14 @@ function createDrop() {
   const xPosition = Math.random() * (gameContainer.clientWidth - size);
   drop.style.left = xPosition + "px";
 
-  // Make drops fall for 4 seconds
-  drop.style.animationDuration = "4s";
+  drop.style.animationDuration = `${fallDuration}s`;
 
   // Add the new drop to the game screen
   gameContainer.appendChild(drop);
 
-  // Remove drops that reach the bottom (weren't clicked)
+  // Missed drops disappear and apply their configured miss penalty.
   drop.addEventListener("animationend", () => {
+    if (drop.dataset.collected === "true") return;
     drop.remove();
     if (!gameRunning) return;
 
